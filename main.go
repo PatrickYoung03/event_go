@@ -1,7 +1,37 @@
 package main
 
-import "fmt"
+import (
+	"net/http"
+
+	"eventgo.com/models"
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	server := gin.Default()
+
+	server.GET("/events", getEvents)
+	server.POST("/events", createEvent)
+
+	server.Run(":8080")
+}
+
+func getEvents(c *gin.Context) {
+	events := models.GetAllEvents()
+	c.JSON(http.StatusOK, events)
+}
+
+func createEvent(c *gin.Context) {
+	var event models.Event
+	err := c.ShouldBindJSON(&event)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect request body."})
+	}
+
+	event.ID = 1
+	event.UserId = 1
+
+	event.Save()
+	c.JSON(http.StatusOK, event)
 }

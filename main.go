@@ -3,11 +3,13 @@ package main
 import (
 	"net/http"
 
+	"eventgo.com/db"
 	"eventgo.com/models"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	db.InitDB()
 	server := gin.Default()
 
 	server.GET("/events", getEvents)
@@ -17,7 +19,12 @@ func main() {
 }
 
 func getEvents(c *gin.Context) {
-	events := models.GetAllEvents()
+	events, err := models.GetAllEvents()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get events."})
+	}
+
 	c.JSON(http.StatusOK, events)
 }
 
@@ -32,6 +39,10 @@ func createEvent(c *gin.Context) {
 	event.ID = 1
 	event.UserId = 1
 
-	event.Save()
+	err = event.Save()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to save."})
+	}
 	c.JSON(http.StatusOK, event)
 }

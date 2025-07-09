@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"eventgo.com/db"
 	"eventgo.com/models"
@@ -13,6 +14,7 @@ func main() {
 	server := gin.Default()
 
 	server.GET("/events", getEvents)
+	server.GET("/events/:id", getSingleEvent)
 	server.POST("/events", createEvent)
 
 	server.Run(":8080")
@@ -36,13 +38,27 @@ func createEvent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect request body."})
 	}
 
-	event.ID = 1
-	event.UserId = 1
-
 	err = event.Save()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to save."})
 	}
+	c.JSON(http.StatusOK, event)
+}
+
+func getSingleEvent(c *gin.Context) {
+
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect request params."})
+	}
+
+	event, err := models.GetEventById(id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not find event with that id."})
+	}
+
 	c.JSON(http.StatusOK, event)
 }

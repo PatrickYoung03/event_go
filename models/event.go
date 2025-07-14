@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"eventgo.com/db"
@@ -81,4 +82,27 @@ func GetEventById(id int64) (*Event, error) {
 	}
 
 	return &event, nil
+}
+
+func (e Event) Update() error {
+	fmt.Println(e.Name)
+	fmt.Println(e.Description)
+	fmt.Println(e.DateTime)
+	fmt.Println(e.ID)
+	query := `
+		UPDATE events 
+		SET name = ?, description = ?, location = ?, dateTime = ?
+		WHERE ID = ?
+	`
+
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.ID)
+
+	return err
 }
